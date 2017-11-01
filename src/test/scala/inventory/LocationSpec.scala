@@ -11,14 +11,20 @@ import scala.concurrent.duration._
 class LocationSpec extends TestKit(ActorSystem("MySpec")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  val sut = system.actorOf(Location.props(item = ItemId("11"), store = StoreId("32")))
+  val item = ItemId("11")
+  val store = StoreId("32")
+  val wrongItem = ItemId("wrongItem")
+  val wrongStore = StoreId("wrongStore")
+
+  val sut = system.actorOf(Location.props(item, store))
+
   val uuid = TimeUuid(42)
 
   "Location" should {
 
     "reply with empty reading if no inventory is known" in {
       sut ! ReadInventory(uuid)
-      expectMsg(200.millis, RespondInventory(uuid, 0))
+      expectMsg(RespondInventory(uuid, 0))
     }
 
     "reply with latest temperature reading" in {
@@ -33,6 +39,29 @@ class LocationSpec extends TestKit(ActorSystem("MySpec")) with ImplicitSender
 
       sut ! ReadInventory(uuid)
       expectMsg(RespondInventory(uuid, 30))
+    }
+
+    "reply to registration request" in {
+      sut ! RequestTrackLocation(store, item)
+      expectMsg(LocationRegistered)
+      lastSender should ===(sut)
+    }
+
+    "ignore wrong registration request" should {
+      "wrong item" in {
+        sut ! RequestTrackLocation(store, wrongItem)
+        expectNoMessage(500.millis)
+      }
+
+      "wrong store" in {
+        sut ! RequestTrackLocation(wrongStore, item)
+        expectNoMessage(500.millis)
+      }
+
+      "wrong item and store" in {
+        sut ! RequestTrackLocation(wrongStore, wrongItem)
+        expectNoMessage(500.millis)
+      }
     }
   }
 

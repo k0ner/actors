@@ -16,16 +16,29 @@ class Location(item: ItemId, store: StoreId) extends Actor with ActorLogging {
   override def postStop(): Unit = log.info("Location actor {}-{} stopped", item, store)
 
   override def receive = {
-    case ReadInventory(id) =>
-      sender() ! RespondInventory(id, lastInventoryPicture)
+    case RequestTrackLocation(`store`, `item`) =>
+      log.info("Registering Location {}-{}", store, item)
+      sender() ! LocationRegistered
 
-    case RecordInventory(uuid, value) =>
-      log.info("Recorded inventory reading {} with {}", uuid, value)
+    case RequestTrackLocation(requestedStore, requstedItem) =>
+      log.warning("Ignoring TrackLocation request for {}-{}. This actor is responsible for {}-{}.",
+        requestedStore, requstedItem, this.store, this.item)
+
+    case RecordInventory(id, value) =>
+      log.info("Recorded inventory reading {} with {}", id, value)
       lastInventoryPicture += value
-      sender() ! InventoryRecorded(uuid)
+      sender() ! InventoryRecorded(id)
+
+    case ReadInventory(id) =>
+      log.debug("ReadInventory requested, id: {}", id)
+      sender() ! RespondInventory(id, lastInventoryPicture)
   }
 }
 
 case class ItemId(value: String)
 
 case class StoreId(value: String)
+
+case class RequestTrackLocation(store: StoreId, item: ItemId)
+
+object LocationRegistered
