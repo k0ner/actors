@@ -1,6 +1,6 @@
 package inventory.store
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import inventory.item.{Item, ItemId, RequestTrackLocation}
 
 import scala.collection.mutable
@@ -16,6 +16,7 @@ object Store {
 class Store(storeId: StoreId) extends Actor with ActorLogging {
 
   val itemIdToActor = mutable.Map.empty[ItemId, ActorRef]
+  val actorToItemId = mutable.Map.empty[ActorRef, ItemId]
 
   override def preStart(): Unit = log.info("Store {} started", storeId)
 
@@ -31,13 +32,25 @@ class Store(storeId: StoreId) extends Actor with ActorLogging {
         case None =>
           log.info("Creating Item actor for {}", trackMsg.item)
           val itemActor = context.actorOf(Item.props(trackMsg.item, trackMsg.store), s"item-${trackMsg.item}")
+          context.watch(itemActor)
           itemIdToActor.put(trackMsg.item, itemActor)
+          actorToItemId.put(itemActor, trackMsg.item)
           itemActor forward trackMsg
       }
 
     case RequestTrackLocation(id, requestedStoreId, _) =>
       log.warning("Ignoring TrackLocation request {} for {}. This actor is responsible for {}",
         id, requestedStoreId, storeId)
+
+    case RequestItemList(requestId) =>
+      log.debug("Item list requested {}", requestId)
+      sender() ! ReplyItemList(requestId, itemIdToActor.keySet)
+
+    case Terminated(itemActor) =>
+      val itemId = actorToItemId(itemActor)
+      log.info("Item actor for {} has been terminated", itemId)
+      actorToItemId.remove(itemActor)
+      itemIdToActor.remove(itemId)
   }
 
 }
