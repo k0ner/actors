@@ -52,5 +52,4 @@ class Store(storeId: StoreId) extends Actor with ActorLogging {
       actorToItemId.remove(itemActor)
       itemIdToActor.remove(itemId)
   }
-
 }
