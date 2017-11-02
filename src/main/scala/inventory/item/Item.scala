@@ -1,6 +1,11 @@
 package inventory.item
 
 import akka.actor.{Actor, ActorLogging, Props}
+import inventory.store.StoreId
+
+case class ItemId(value: String) extends AnyVal {
+  override def toString = value
+}
 
 object Item {
   def props(item: ItemId, store: StoreId): Props = Props(new Item(item, store))
@@ -16,7 +21,7 @@ class Item(item: ItemId, store: StoreId) extends Actor with ActorLogging {
 
   override def receive = {
     case RequestTrackLocation(id, `store`, `item`) =>
-      log.info("Registering {} Location {}-{}", id, store, item)
+      log.info("Registering Item {}-{} for id: {}", store, item, id)
       sender() ! LocationRegistered(id)
 
     case RequestTrackLocation(id, requestedStore, requestedItem) =>
@@ -33,9 +38,3 @@ class Item(item: ItemId, store: StoreId) extends Actor with ActorLogging {
       sender() ! RespondInventory(id, lastInventoryPicture)
   }
 }
-
-case class ItemId(value: String)
-
-case class StoreId(value: String)
-
-

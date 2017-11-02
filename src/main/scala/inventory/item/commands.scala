@@ -2,6 +2,8 @@ package inventory.item
 
 import java.util.UUID
 
+import inventory.store.StoreId
+
 case class ReadInventory(requestId: UUID)
 
 case class RespondInventory(requestId: UUID, value: Int)

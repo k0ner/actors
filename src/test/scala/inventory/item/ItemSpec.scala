@@ -1,14 +1,14 @@
-package inventory
+package inventory.item
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.gilt.timeuuid.TimeUuid
-import inventory.item._
+import inventory.store.StoreId
 import org.scalatest._
 
 import scala.concurrent.duration._
 
-class ItemSpec extends TestKit(ActorSystem("MySpec")) with ImplicitSender
+class ItemSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
   val item = ItemId("11")
@@ -20,7 +20,7 @@ class ItemSpec extends TestKit(ActorSystem("MySpec")) with ImplicitSender
 
   val id = TimeUuid(42)
 
-  "Item" should {
+  "Item actor" should {
 
     "reply with empty reading if no inventory is known" in {
       sut ! ReadInventory(id)
