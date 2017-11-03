@@ -5,3 +5,5 @@ resolvers += "scoverage-bintray" at "https://dl.bintray.com/sksamuel/sbt-plugins
 addSbtPlugin("com.artima.supersafe" % "sbtplugin" % "1.1.2")
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
+
+addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.2.2")
