@@ -1,6 +1,6 @@
 package inventory.availability
 
-import akka.actor.{ActorRef, ActorSystem, PoisonPill}
+import akka.actor.{ActorSystem, PoisonPill}
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import com.gilt.timeuuid.TimeUuid
 import inventory.item.{ReadInventory, RespondInventory}
@@ -12,27 +12,12 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
   with WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
   val id = TimeUuid(0)
-  var firstItem: TestProbe = _
-  var secondItem: TestProbe = _
-  var sut: ActorRef = _
 
   val firstItemId = "firstItemId"
   val secondItemId = "secondItemId"
 
-  override protected def beforeEach() = {
-    firstItem = TestProbe()
-    secondItem = TestProbe()
-
-    sut = system.actorOf(
-      StoreQuery.props(
-        actorToItemId = Map(firstItem.ref -> firstItemId, secondItem.ref -> secondItemId),
-        requestId = id,
-        requester = self,
-        timeout = 1.seconds))
-  }
-
   "Store query" should {
-    "return availability value for active items" in {
+    "return availability value for active items" in new TestSupport {
 
       firstItem.expectMsg(ReadInventory(id))
       secondItem.expectMsg(ReadInventory(id))
@@ -49,7 +34,7 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
     }
 
     //TODO [k0] when NoAvailability is introduced
-    "return NoAvailability for items with no readings" ignore {
+    "return NoAvailability for items with no readings" ignore new TestSupport {
 
       firstItem.expectMsg(ReadInventory(id))
       secondItem.expectMsg(ReadInventory(id))
@@ -65,7 +50,7 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
             secondItemId -> Availability(2))))
     }
 
-    "return ItemNotAvailable if item stops before answering" in {
+    "return ItemNotAvailable if item stops before answering" in new TestSupport {
 
       firstItem.expectMsg(ReadInventory(id))
       secondItem.expectMsg(ReadInventory(id))
@@ -82,7 +67,7 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
 
     }
 
-    "return availability reading even if item stops after answering" in {
+    "return availability reading even if item stops after answering" in new TestSupport {
 
       firstItem.expectMsg(ReadInventory(id))
       secondItem.expectMsg(ReadInventory(id))
@@ -99,7 +84,7 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
             secondItemId -> Availability(2))))
     }
 
-    "return ItemTimedOut if item does not answer in time" in {
+    "return ItemTimedOut if item does not answer in time" in new TestSupport {
 
       firstItem.expectMsg(ReadInventory(id))
       secondItem.expectMsg(ReadInventory(id))
@@ -114,4 +99,17 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
             secondItemId -> ItemTimedOut)))
     }
   }
+
+  class TestSupport {
+
+    var firstItem = TestProbe()
+    var secondItem = TestProbe()
+    var sut = system.actorOf(
+      StoreQuery.props(
+        actorToItemId = Map(firstItem.ref -> firstItemId, secondItem.ref -> secondItemId),
+        requestId = id,
+        requester = self,
+        timeout = 1.seconds))
+  }
+
 }
