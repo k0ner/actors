@@ -3,13 +3,13 @@ package octostore.availability
 import java.util.UUID
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
-import octostore.availability.StoreQuery.CollectionTimeout
+import octostore.availability.LocationQuery.CollectionTimeout
 import octostore.listing.{ReadInventory, RespondInventory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
 
-object StoreQuery {
+object LocationQuery {
 
   case object CollectionTimeout
 
@@ -17,13 +17,13 @@ object StoreQuery {
             requestId: UUID,
             requester: ActorRef,
             timeout: FiniteDuration): Props =
-    Props(new StoreQuery(actorToListingId, requestId, requester, timeout))
+    Props(new LocationQuery(actorToListingId, requestId, requester, timeout))
 }
 
-class StoreQuery(actorToListingId: Map[ActorRef, String],
-                 requestId: UUID,
-                 requester: ActorRef,
-                 timeout: FiniteDuration) extends Actor with ActorLogging {
+class LocationQuery(actorToListingId: Map[ActorRef, String],
+                    requestId: UUID,
+                    requester: ActorRef,
+                    timeout: FiniteDuration) extends Actor with ActorLogging {
 
   val queryTimeoutTimer = context.system.scheduler.scheduleOnce(timeout, self, CollectionTimeout)
 

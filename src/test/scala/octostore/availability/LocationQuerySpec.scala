@@ -8,7 +8,7 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecL
 
 import scala.concurrent.duration._
 
-class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
+class LocationQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
   val id = TimeUuid(0)
@@ -16,7 +16,7 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
   val firstListingId = "firstListingId"
   val secondListingId = "secondListingId"
 
-  "Store query" should {
+  "Location query" should {
     "return availability value for active listings" in new TestSupport {
 
       firstListing.expectMsg(ReadInventory(id))
@@ -105,7 +105,7 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
     val firstListing = TestProbe()
     val secondListing = TestProbe()
     val sut = system.actorOf(
-      StoreQuery.props(
+      LocationQuery.props(
         actorToListingId = Map(firstListing.ref -> firstListingId, secondListing.ref -> secondListingId),
         requestId = id,
         requester = self,
