@@ -9,26 +9,26 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.duration._
 
 
-class StoreSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
+class LocationSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  val storeId = StoreId("store")
+  val locationId = LocationId("locationId")
   val id = TimeUuid(0)
   val firstListing = ListingId("1")
   val secondListing = ListingId("2")
-  val wrongStore = StoreId("wrongStore")
+  val wrongLocation = LocationId("wrongLocationId")
 
-  val sut = system.actorOf(Store.props(storeId))
+  val sut = system.actorOf(Location.props(locationId))
 
-  "Store actor" should {
+  "Location actor" should {
 
     "be able to register an listing actor" in {
-      sut ! RequestTrackListing(id, storeId, firstListing)
+      sut ! RequestTrackListing(id, locationId, firstListing)
       expectMsg(ListingRegistered(id))
 
       val firstListingActor = lastSender
 
-      sut ! RequestTrackListing(id, storeId, secondListing)
+      sut ! RequestTrackListing(id, locationId, secondListing)
       expectMsg(ListingRegistered(id))
 
       val secondListingActor = lastSender
@@ -42,18 +42,18 @@ class StoreSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
       expectMsg(InventoryRecorded(id))
     }
 
-    "ignore request for wrong storeId" in {
-      sut ! RequestTrackListing(id, wrongStore, firstListing)
+    "ignore request for wrong locationId" in {
+      sut ! RequestTrackListing(id, wrongLocation, firstListing)
       expectNoMessage(500.millis)
     }
 
     "return same actor for same listingId" in {
-      sut ! RequestTrackListing(id, storeId, firstListing)
+      sut ! RequestTrackListing(id, locationId, firstListing)
       expectMsg(ListingRegistered(id))
 
       val firstListingActor = lastSender
 
-      sut ! RequestTrackListing(id, storeId, firstListing)
+      sut ! RequestTrackListing(id, locationId, firstListing)
       expectMsg(ListingRegistered(id))
 
       val secondListingActor = lastSender
@@ -61,10 +61,10 @@ class StoreSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
     }
 
     "be able to list active listings" in {
-      sut ! RequestTrackListing(id, storeId, firstListing)
+      sut ! RequestTrackListing(id, locationId, firstListing)
       expectMsg(ListingRegistered(id))
 
-      sut ! RequestTrackListing(id, storeId, secondListing)
+      sut ! RequestTrackListing(id, locationId, secondListing)
       expectMsg(ListingRegistered(id))
 
       sut ! RequestListings(id)
@@ -72,11 +72,11 @@ class StoreSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
     }
 
     "be able to list active listings after one shuts down" in {
-      sut ! RequestTrackListing(id, storeId, firstListing)
+      sut ! RequestTrackListing(id, locationId, firstListing)
       expectMsg(ListingRegistered(id))
       val toShutDown = lastSender
 
-      sut ! RequestTrackListing(id, storeId, secondListing)
+      sut ! RequestTrackListing(id, locationId, secondListing)
       expectMsg(ListingRegistered(id))
 
       sut ! RequestListings(id)

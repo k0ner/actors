@@ -11,8 +11,8 @@ object StoreManager {
 
 class StoreManager extends Actor with ActorLogging {
 
-  val storeIdToActor = mutable.Map.empty[StoreId, ActorRef]
-  val actorToStoreId = mutable.Map.empty[ActorRef, StoreId]
+  val storeIdToActor = mutable.Map.empty[LocationId, ActorRef]
+  val actorToStoreId = mutable.Map.empty[ActorRef, LocationId]
 
   override def preStart(): Unit = log.info("StoreManager started")
 
@@ -20,23 +20,23 @@ class StoreManager extends Actor with ActorLogging {
 
   override def receive = {
     case trackMsg@RequestTrackListing(_, _, _) =>
-      log.debug("RequestTrackListing {} for {}-{} received", trackMsg.requestId, trackMsg.store, trackMsg.listingId)
-      storeIdToActor.get(trackMsg.store) match {
+      log.debug("RequestTrackListing {} for {}-{} received", trackMsg.requestId, trackMsg.locationId, trackMsg.listingId)
+      storeIdToActor.get(trackMsg.locationId) match {
         case Some(storeActor) =>
           log.debug("Store actor found {}, forwarding message", storeActor)
           storeActor forward trackMsg
         case None =>
-          log.info("Creating Store actor for {}", trackMsg.store)
-          val storeActor = context.actorOf(Store.props(trackMsg.store), s"store-${trackMsg.store}")
+          log.info("Creating Store actor for {}", trackMsg.locationId)
+          val storeActor = context.actorOf(Location.props(trackMsg.locationId), s"store-${trackMsg.locationId}")
           context.watch(storeActor)
-          storeIdToActor.put(trackMsg.store, storeActor)
-          actorToStoreId.put(storeActor, trackMsg.store)
+          storeIdToActor.put(trackMsg.locationId, storeActor)
+          actorToStoreId.put(storeActor, trackMsg.locationId)
           storeActor forward trackMsg
       }
 
-    case RequestStoreList(requestId) =>
+    case RequestLocations(requestId) =>
       log.debug("Store list requested {}", requestId)
-      sender() ! ReplyStoreList(requestId, storeIdToActor.keySet)
+      sender() ! ReplyLocations(requestId, storeIdToActor.keySet)
 
     case Terminated(storeActor) =>
       val storeId = actorToStoreId(storeActor)

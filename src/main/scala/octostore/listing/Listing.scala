@@ -1,32 +1,32 @@
 package octostore.listing
 
 import akka.actor.{Actor, ActorLogging, Props}
-import octostore.location.StoreId
+import octostore.location.LocationId
 
 case class ListingId(value: String) extends AnyVal {
   override def toString = value
 }
 
 object Listing {
-  def props(listingId: ListingId, store: StoreId): Props = Props(new Listing(listingId, store))
+  def props(listingId: ListingId, locationId: LocationId): Props = Props(new Listing(listingId, locationId))
 }
 
-class Listing(listingId: ListingId, store: StoreId) extends Actor with ActorLogging {
+class Listing(listingId: ListingId, locationId: LocationId) extends Actor with ActorLogging {
 
-  override def preStart(): Unit = log.info("Listing actor {}-{} started", listingId, store)
+  override def preStart(): Unit = log.info("Listing actor {}-{} started", listingId, locationId)
 
-  override def postStop(): Unit = log.info("Listing actor {}-{} stopped", listingId, store)
+  override def postStop(): Unit = log.info("Listing actor {}-{} stopped", listingId, locationId)
 
   override def receive = doReceive(0)
 
   def doReceive(availability: Int): Receive = {
-    case RequestTrackListing(requestId, `store`, `listingId`) =>
-      log.info("Registering listing {}-{} for requestId: {}", store, listingId, requestId)
+    case RequestTrackListing(requestId, `locationId`, `listingId`) =>
+      log.info("Registering listing {}-{} for requestId: {}", locationId, listingId, requestId)
       sender() ! ListingRegistered(requestId)
 
-    case RequestTrackListing(id, requestedStore, requestedListingId) =>
-      log.warning(s"Ignoring TrackListing request $id for $requestedStore-$requestedListingId." +
-        s" This actor is responsible for ${this.store}-${this.listingId}.")
+    case RequestTrackListing(id, requestedLocationId, requestedListingId) =>
+      log.warning(s"Ignoring TrackListing request (request id $id) for $requestedLocationId-$requestedListingId." +
+        s" This actor is responsible for ${this.locationId}-${this.listingId}.")
 
     case RecordInventory(id, value) =>
       log.info("Recorded inventory reading (request id {}) with {}", id, value)

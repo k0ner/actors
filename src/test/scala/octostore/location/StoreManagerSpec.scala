@@ -12,12 +12,12 @@ import scala.concurrent.duration._
 class StoreManagerSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  val firstStoreId = StoreId("first-store")
-  val secondStoreId = StoreId("second-store")
+  val firstStoreId = LocationId("first-store")
+  val secondStoreId = LocationId("second-store")
   val id = TimeUuid(0)
   val firstListing = ListingId("1")
   val secondListing = ListingId("2")
-  val wrongStore = StoreId("wrongStore")
+  val wrongStore = LocationId("wrongStore")
 
   val sut = system.actorOf(StoreManager.props())
 
@@ -63,8 +63,8 @@ class StoreManagerSpec extends TestKit(ActorSystem("testSystem")) with ImplicitS
       sut ! RequestTrackListing(id, secondStoreId, secondListing)
       expectMsg(ListingRegistered(id))
 
-      sut ! RequestStoreList(id)
-      expectMsg(ReplyStoreList(id, Set(firstStoreId, secondStoreId)))
+      sut ! RequestLocations(id)
+      expectMsg(ReplyLocations(id, Set(firstStoreId, secondStoreId)))
     }
 
     "be able to list active listings after one shuts down" in {
@@ -74,8 +74,8 @@ class StoreManagerSpec extends TestKit(ActorSystem("testSystem")) with ImplicitS
       sut ! RequestTrackListing(id, secondStoreId, secondListing)
       expectMsg(ListingRegistered(id))
 
-      sut ! RequestStoreList(id)
-      expectMsg(ReplyStoreList(id, Set(firstStoreId, secondStoreId)))
+      sut ! RequestLocations(id)
+      expectMsg(ReplyLocations(id, Set(firstStoreId, secondStoreId)))
 
       // just to get actor ref
       system.actorSelection(s"akka://testSystem/user/*/store-$firstStoreId") ! RequestListings(id)
@@ -87,8 +87,8 @@ class StoreManagerSpec extends TestKit(ActorSystem("testSystem")) with ImplicitS
       expectTerminated(toShutDown, 500.millis)
 
       awaitAssert {
-        sut ! RequestStoreList(id)
-        expectMsg(ReplyStoreList(id, Set(secondStoreId)))
+        sut ! RequestLocations(id)
+        expectMsg(ReplyLocations(id, Set(secondStoreId)))
       }
     }
   }

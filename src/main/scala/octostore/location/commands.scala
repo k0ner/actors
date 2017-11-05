@@ -8,6 +8,6 @@ case class RequestListings(requestId: UUID)
 
 case class ReplyListings(requestId: UUID, listings: Iterable[ListingId])
 
-case class RequestStoreList(requestId: UUID)
+case class RequestLocations(requestId: UUID)
 
-case class ReplyStoreList(requestId: UUID, storeList: Iterable[StoreId])
+case class ReplyLocations(requestId: UUID, locations: Iterable[LocationId])
