@@ -102,9 +102,9 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
 
   class TestSupport {
 
-    var firstItem = TestProbe()
-    var secondItem = TestProbe()
-    var sut = system.actorOf(
+    val firstItem = TestProbe()
+    val secondItem = TestProbe()
+    val sut = system.actorOf(
       StoreQuery.props(
         actorToItemId = Map(firstItem.ref -> firstItemId, secondItem.ref -> secondItemId),
         requestId = id,

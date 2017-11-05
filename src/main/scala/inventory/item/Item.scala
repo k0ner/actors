@@ -13,13 +13,13 @@ object Item {
 
 class Item(item: ItemId, store: StoreId) extends Actor with ActorLogging {
 
-  var lastInventoryPicture = 0
-
   override def preStart(): Unit = log.info("Location actor {}-{} started", item, store)
 
   override def postStop(): Unit = log.info("Location actor {}-{} stopped", item, store)
 
-  override def receive = {
+  override def receive = doReceive(0)
+
+  def doReceive(availability: Int): Receive = {
     case RequestTrackLocation(id, `store`, `item`) =>
       log.info("Registering Item {}-{} for id: {}", store, item, id)
       sender() ! LocationRegistered(id)
@@ -30,11 +30,11 @@ class Item(item: ItemId, store: StoreId) extends Actor with ActorLogging {
 
     case RecordInventory(id, value) =>
       log.info("Recorded inventory reading {} with {}", id, value)
-      lastInventoryPicture += value
       sender() ! InventoryRecorded(id)
+      context.become(doReceive(availability + value))
 
     case ReadInventory(id) =>
       log.debug("ReadInventory requested, id: {}", id)
-      sender() ! RespondInventory(id, lastInventoryPicture)
+      sender() ! RespondInventory(id, availability)
   }
 }

@@ -44,7 +44,7 @@ class StoreQuery(
                         stillWaiting: Set[ActorRef]): Receive = {
     case RespondInventory(`requestId`, quantity) => receivedResponse(sender(), Availability(quantity), stillWaiting, repliesSoFar)
 
-    case Terminated(itemActor) => receivedResponse(sender(), ItemNotAvailable, stillWaiting, repliesSoFar)
+    case Terminated(_) => receivedResponse(sender(), ItemNotAvailable, stillWaiting, repliesSoFar)
 
     case CollectionTimeout =>
       val timedOutReplies =
