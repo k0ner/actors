@@ -2,11 +2,11 @@ package octostore.store
 
 import java.util.UUID
 
-import octostore.listing.ItemId
+import octostore.listing.ListingId
 
-case class RequestItemList(requestId: UUID)
+case class RequestListings(requestId: UUID)
 
-case class ReplyItemList(requestId: UUID, itemList: Iterable[ItemId])
+case class ReplyListings(requestId: UUID, listings: Iterable[ListingId])
 
 case class RequestStoreList(requestId: UUID)
 

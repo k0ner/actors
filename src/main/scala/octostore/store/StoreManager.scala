@@ -1,7 +1,7 @@
 package octostore.store
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
-import octostore.listing.RequestTrackLocation
+import octostore.listing.RequestTrackListing
 
 import scala.collection.mutable
 
@@ -19,8 +19,8 @@ class StoreManager extends Actor with ActorLogging {
   override def postStop(): Unit = log.info("StoreManager  stopped")
 
   override def receive = {
-    case trackMsg@RequestTrackLocation(_, _, _) =>
-      log.debug("RequestTrackLocation {} for {}-{} received", trackMsg.requestId, trackMsg.store, trackMsg.item)
+    case trackMsg@RequestTrackListing(_, _, _) =>
+      log.debug("RequestTrackListing {} for {}-{} received", trackMsg.requestId, trackMsg.store, trackMsg.listingId)
       storeIdToActor.get(trackMsg.store) match {
         case Some(storeActor) =>
           log.debug("Store actor found {}, forwarding message", storeActor)

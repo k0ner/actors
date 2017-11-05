@@ -13,100 +13,100 @@ class StoreQuerySpec extends TestKit(ActorSystem("testSystem")) with ImplicitSen
 
   val id = TimeUuid(0)
 
-  val firstItemId = "firstItemId"
-  val secondItemId = "secondItemId"
+  val firstListingId = "firstListingId"
+  val secondListingId = "secondListingId"
 
   "Store query" should {
-    "return availability value for active items" in new TestSupport {
+    "return availability value for active listings" in new TestSupport {
 
-      firstItem.expectMsg(ReadInventory(id))
-      secondItem.expectMsg(ReadInventory(id))
+      firstListing.expectMsg(ReadInventory(id))
+      secondListing.expectMsg(ReadInventory(id))
 
-      sut.tell(RespondInventory(id, 1), firstItem.ref)
-      sut.tell(RespondInventory(id, 2), secondItem.ref)
+      sut.tell(RespondInventory(id, 1), firstListing.ref)
+      sut.tell(RespondInventory(id, 2), secondListing.ref)
 
       expectMsg(
         RespondAllAvailabilities(
           requestId = id,
           availabilities = Map(
-            firstItemId -> Availability(1),
-            secondItemId -> Availability(2))))
+            firstListingId -> Availability(1),
+            secondListingId -> Availability(2))))
     }
 
     //TODO [k0] when NoAvailability is introduced
-    "return NoAvailability for items with no readings" ignore new TestSupport {
+    "return NoAvailability for listings with no readings" ignore new TestSupport {
 
-      firstItem.expectMsg(ReadInventory(id))
-      secondItem.expectMsg(ReadInventory(id))
+      firstListing.expectMsg(ReadInventory(id))
+      secondListing.expectMsg(ReadInventory(id))
 
-      sut.tell(RespondInventory(id, 1), firstItem.ref)
-      sut.tell(RespondInventory(id, 2), secondItem.ref)
+      sut.tell(RespondInventory(id, 1), firstListing.ref)
+      sut.tell(RespondInventory(id, 2), secondListing.ref)
 
       expectMsg(
         RespondAllAvailabilities(
           requestId = id,
           availabilities = Map(
-            firstItemId -> Availability(1),
-            secondItemId -> Availability(2))))
+            firstListingId -> Availability(1),
+            secondListingId -> Availability(2))))
     }
 
-    "return ItemNotAvailable if item stops before answering" in new TestSupport {
+    "return ListingNotAvailable if listing stops before answering" in new TestSupport {
 
-      firstItem.expectMsg(ReadInventory(id))
-      secondItem.expectMsg(ReadInventory(id))
+      firstListing.expectMsg(ReadInventory(id))
+      secondListing.expectMsg(ReadInventory(id))
 
-      sut.tell(RespondInventory(id, 1), firstItem.ref)
-      secondItem.ref ! PoisonPill
+      sut.tell(RespondInventory(id, 1), firstListing.ref)
+      secondListing.ref ! PoisonPill
 
       expectMsg(
         RespondAllAvailabilities(
           requestId = id,
           availabilities = Map(
-            firstItemId -> Availability(1),
-            secondItemId -> ItemNotAvailable)))
+            firstListingId -> Availability(1),
+            secondListingId -> ListingNotReachable)))
 
     }
 
-    "return availability reading even if item stops after answering" in new TestSupport {
+    "return availability reading even if listing stops after answering" in new TestSupport {
 
-      firstItem.expectMsg(ReadInventory(id))
-      secondItem.expectMsg(ReadInventory(id))
+      firstListing.expectMsg(ReadInventory(id))
+      secondListing.expectMsg(ReadInventory(id))
 
-      sut.tell(RespondInventory(id, 1), firstItem.ref)
-      sut.tell(RespondInventory(id, 2), secondItem.ref)
-      secondItem.ref ! PoisonPill
+      sut.tell(RespondInventory(id, 1), firstListing.ref)
+      sut.tell(RespondInventory(id, 2), secondListing.ref)
+      secondListing.ref ! PoisonPill
 
       expectMsg(
         RespondAllAvailabilities(
           requestId = id,
           availabilities = Map(
-            firstItemId -> Availability(1),
-            secondItemId -> Availability(2))))
+            firstListingId -> Availability(1),
+            secondListingId -> Availability(2))))
     }
 
-    "return ItemTimedOut if item does not answer in time" in new TestSupport {
+    "return ListingTimedOut if listing does not answer in time" in new TestSupport {
 
-      firstItem.expectMsg(ReadInventory(id))
-      secondItem.expectMsg(ReadInventory(id))
+      firstListing.expectMsg(ReadInventory(id))
+      secondListing.expectMsg(ReadInventory(id))
 
-      sut.tell(RespondInventory(id, 1), firstItem.ref)
+      sut.tell(RespondInventory(id, 1), firstListing.ref)
 
       expectMsg(
         RespondAllAvailabilities(
           requestId = id,
           availabilities = Map(
-            firstItemId -> Availability(1),
-            secondItemId -> ItemTimedOut)))
+            firstListingId -> Availability(1),
+            secondListingId -> ListingTimedOut)))
     }
   }
 
   class TestSupport {
 
-    val firstItem = TestProbe()
-    val secondItem = TestProbe()
+    val firstListing = TestProbe()
+    val secondListing = TestProbe()
     val sut = system.actorOf(
       StoreQuery.props(
-        actorToItemId = Map(firstItem.ref -> firstItemId, secondItem.ref -> secondItemId),
+        actorToListingId = Map(firstListing.ref -> firstListingId, secondListing.ref -> secondListingId),
         requestId = id,
         requester = self,
         timeout = 1.seconds))

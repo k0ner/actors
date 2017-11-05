@@ -13,14 +13,14 @@ object StoreQuery {
 
   case object CollectionTimeout
 
-  def props(actorToItemId: Map[ActorRef, String],
+  def props(actorToListingId: Map[ActorRef, String],
             requestId: UUID,
             requester: ActorRef,
             timeout: FiniteDuration): Props =
-    Props(new StoreQuery(actorToItemId, requestId, requester, timeout))
+    Props(new StoreQuery(actorToListingId, requestId, requester, timeout))
 }
 
-class StoreQuery(actorToItemId: Map[ActorRef, String],
+class StoreQuery(actorToListingId: Map[ActorRef, String],
                  requestId: UUID,
                  requester: ActorRef,
                  timeout: FiniteDuration) extends Actor with ActorLogging {
@@ -28,28 +28,28 @@ class StoreQuery(actorToItemId: Map[ActorRef, String],
   val queryTimeoutTimer = context.system.scheduler.scheduleOnce(timeout, self, CollectionTimeout)
 
   override def preStart(): Unit = {
-    actorToItemId.keysIterator.foreach { itemActor =>
-      context.watch(itemActor)
-      itemActor ! ReadInventory(requestId)
+    actorToListingId.keysIterator.foreach { listingActor =>
+      context.watch(listingActor)
+      listingActor ! ReadInventory(requestId)
     }
   }
 
   override def postStop(): Unit = queryTimeoutTimer.cancel()
 
   override def receive =
-    waitingForReplies(Map.empty, actorToItemId.keySet)
+    waitingForReplies(Map.empty, actorToListingId.keySet)
 
   def waitingForReplies(repliesSoFar: Map[String, AvailabilityReading],
                         stillWaiting: Set[ActorRef]): Receive = {
     case RespondInventory(`requestId`, quantity) => receivedResponse(sender(), Availability(quantity), stillWaiting, repliesSoFar)
 
-    case Terminated(_) => receivedResponse(sender(), ItemNotAvailable, stillWaiting, repliesSoFar)
+    case Terminated(_) => receivedResponse(sender(), ListingNotReachable, stillWaiting, repliesSoFar)
 
     case CollectionTimeout =>
       val timedOutReplies =
-        stillWaiting.map { itemActor =>
-          val itemId = actorToItemId(itemActor)
-          itemId -> ItemTimedOut
+        stillWaiting.map { listingActor =>
+          val listingId = actorToListingId(listingActor)
+          listingId -> ListingTimedOut
         }
       respond(repliesSoFar ++ timedOutReplies)
   }
@@ -59,16 +59,16 @@ class StoreQuery(actorToItemId: Map[ActorRef, String],
     context.stop(self)
   }
 
-  def receivedResponse(itemActor: ActorRef,
+  def receivedResponse(listingActor: ActorRef,
                        reading: AvailabilityReading,
                        stillWaiting: Set[ActorRef],
                        repliesSoFar: Map[String, AvailabilityReading]): Unit = {
 
-    context.unwatch(itemActor)
-    val itemId = actorToItemId(itemActor)
+    context.unwatch(listingActor)
+    val listingId = actorToListingId(listingActor)
 
-    val newStillWaiting = stillWaiting - itemActor
-    val newRepliesSoFar = repliesSoFar + (itemId -> reading)
+    val newStillWaiting = stillWaiting - listingActor
+    val newRepliesSoFar = repliesSoFar + (listingId -> reading)
 
     if (newStillWaiting.isEmpty) {
       respond(newRepliesSoFar)

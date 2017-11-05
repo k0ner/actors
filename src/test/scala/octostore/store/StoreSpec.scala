@@ -14,81 +14,81 @@ class StoreSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
 
   val storeId = StoreId("store")
   val id = TimeUuid(0)
-  val firstItem = ItemId("1")
-  val secondItem = ItemId("2")
+  val firstListing = ListingId("1")
+  val secondListing = ListingId("2")
   val wrongStore = StoreId("wrongStore")
 
   val sut = system.actorOf(Store.props(storeId))
 
   "Store actor" should {
 
-    "be able to register an item actor" in {
-      sut ! RequestTrackLocation(id, storeId, firstItem)
-      expectMsg(LocationRegistered(id))
+    "be able to register an listing actor" in {
+      sut ! RequestTrackListing(id, storeId, firstListing)
+      expectMsg(ListingRegistered(id))
 
-      val firstItemActor = lastSender
+      val firstListingActor = lastSender
 
-      sut ! RequestTrackLocation(id, storeId, secondItem)
-      expectMsg(LocationRegistered(id))
+      sut ! RequestTrackListing(id, storeId, secondListing)
+      expectMsg(ListingRegistered(id))
 
-      val secondItemActor = lastSender
-      firstItemActor should !==(secondItemActor)
+      val secondListingActor = lastSender
+      firstListingActor should !==(secondListingActor)
 
-      // Check that item actors are working
-      firstItemActor ! RecordInventory(id, 1)
+      // Check that listing actors are working
+      firstListingActor ! RecordInventory(id, 1)
       expectMsg(InventoryRecorded(id))
 
-      secondItemActor ! RecordInventory(id, 2)
+      secondListingActor ! RecordInventory(id, 2)
       expectMsg(InventoryRecorded(id))
     }
 
     "ignore request for wrong storeId" in {
-      sut ! RequestTrackLocation(id, wrongStore, firstItem)
+      sut ! RequestTrackListing(id, wrongStore, firstListing)
       expectNoMessage(500.millis)
     }
 
-    "return same actor for same itemId" in {
-      sut ! RequestTrackLocation(id, storeId, firstItem)
-      expectMsg(LocationRegistered(id))
+    "return same actor for same listingId" in {
+      sut ! RequestTrackListing(id, storeId, firstListing)
+      expectMsg(ListingRegistered(id))
 
-      val firstItemActor = lastSender
+      val firstListingActor = lastSender
 
-      sut ! RequestTrackLocation(id, storeId, firstItem)
-      expectMsg(LocationRegistered(id))
+      sut ! RequestTrackListing(id, storeId, firstListing)
+      expectMsg(ListingRegistered(id))
 
-      val secondItemActor = lastSender
-      firstItemActor should ===(secondItemActor)
+      val secondListingActor = lastSender
+      firstListingActor should ===(secondListingActor)
     }
 
-    "be able to list active items" in {
-      sut ! RequestTrackLocation(id, storeId, firstItem)
-      expectMsg(LocationRegistered(id))
+    "be able to list active listings" in {
+      sut ! RequestTrackListing(id, storeId, firstListing)
+      expectMsg(ListingRegistered(id))
 
-      sut ! RequestTrackLocation(id, storeId, secondItem)
-      expectMsg(LocationRegistered(id))
+      sut ! RequestTrackListing(id, storeId, secondListing)
+      expectMsg(ListingRegistered(id))
 
-      sut ! RequestItemList(id)
-      expectMsg(ReplyItemList(id, Set(firstItem, secondItem)))
+      sut ! RequestListings(id)
+      expectMsg(ReplyListings(id, Set(firstListing, secondListing)))
     }
 
-    "be able to list active items after one shuts down" in {
-      sut ! RequestTrackLocation(id, storeId, firstItem)
-      expectMsg(LocationRegistered(id))
+    "be able to list active listings after one shuts down" in {
+      sut ! RequestTrackListing(id, storeId, firstListing)
+      expectMsg(ListingRegistered(id))
       val toShutDown = lastSender
 
-      sut ! RequestTrackLocation(id, storeId, secondItem)
-      expectMsg(LocationRegistered(id))
+      sut ! RequestTrackListing(id, storeId, secondListing)
+      expectMsg(ListingRegistered(id))
 
-      sut ! RequestItemList(id)
-      expectMsg(ReplyItemList(id, Set(firstItem, secondItem)))
+      sut ! RequestListings(id)
+      expectMsg(ReplyListings(id, Set(firstListing, secondListing)))
 
       watch(toShutDown)
       toShutDown ! PoisonPill
       expectTerminated(toShutDown, 500.millis)
 
       awaitAssert {
-        sut ! RequestItemList(id)
-        expectMsg(ReplyItemList(id, Set(secondItem)))
+        sut ! RequestListings(id)
+        expectMsg(ReplyListings(id, Set(secondListing)))
       }
     }
   }

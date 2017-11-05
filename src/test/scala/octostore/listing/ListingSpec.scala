@@ -8,19 +8,19 @@ import org.scalatest._
 
 import scala.concurrent.duration._
 
-class ItemSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
+class ListingSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  val item = ItemId("11")
+  val listing = ListingId("11")
   val store = StoreId("32")
-  val wrongItem = ItemId("wrongItem")
+  val wrongListing = ListingId("wrongListing")
   val wrongStore = StoreId("wrongStore")
 
-  val sut = system.actorOf(Item.props(item, store))
+  val sut = system.actorOf(Listing.props(listing, store))
 
   val id = TimeUuid(42)
 
-  "Item actor" should {
+  "Listing actor" should {
 
     "reply with empty reading if no inventory is known" in {
       sut ! ReadInventory(id)
@@ -42,24 +42,24 @@ class ItemSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
     }
 
     "reply to registration request" in {
-      sut ! RequestTrackLocation(id, store, item)
-      expectMsg(LocationRegistered(id))
+      sut ! RequestTrackListing(id, store, listing)
+      expectMsg(ListingRegistered(id))
       lastSender should ===(sut)
     }
 
     "ignore wrong registration request" should {
-      "wrong item" in {
-        sut ! RequestTrackLocation(id, store, wrongItem)
+      "wrong listing" in {
+        sut ! RequestTrackListing(id, store, wrongListing)
         expectNoMessage(500.millis)
       }
 
       "wrong store" in {
-        sut ! RequestTrackLocation(id, wrongStore, item)
+        sut ! RequestTrackListing(id, wrongStore, listing)
         expectNoMessage(500.millis)
       }
 
-      "wrong item and store" in {
-        sut ! RequestTrackLocation(id, wrongStore, wrongItem)
+      "wrong listing and store" in {
+        sut ! RequestTrackListing(id, wrongStore, wrongListing)
         expectNoMessage(500.millis)
       }
     }

@@ -1,7 +1,7 @@
 package octostore.store
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
-import octostore.listing.{Item, ItemId, RequestTrackLocation}
+import octostore.listing.{Listing, ListingId, RequestTrackListing}
 
 import scala.collection.mutable
 
@@ -15,41 +15,41 @@ object Store {
 
 class Store(storeId: StoreId) extends Actor with ActorLogging {
 
-  val itemIdToActor = mutable.Map.empty[ItemId, ActorRef]
-  val actorToItemId = mutable.Map.empty[ActorRef, ItemId]
+  val listingIdToActor = mutable.Map.empty[ListingId, ActorRef]
+  val actorToListingId = mutable.Map.empty[ActorRef, ListingId]
 
   override def preStart(): Unit = log.info("Store {} started", storeId)
 
   override def postStop(): Unit = log.info("Store {} stopped", storeId)
 
   override def receive = {
-    case trackMsg@RequestTrackLocation(_, `storeId`, _) =>
-      log.debug("RequestTrackLocation {} for {}-{} received", trackMsg.requestId, trackMsg.store, trackMsg.item)
-      itemIdToActor.get(trackMsg.item) match {
-        case Some(itemActor) =>
-          log.debug("Item actor found {}, forwarding message", itemActor)
-          itemActor forward trackMsg
+    case trackMsg@RequestTrackListing(_, `storeId`, _) =>
+      log.debug("RequestTrackListing {} for {}-{} received", trackMsg.requestId, trackMsg.store, trackMsg.listingId)
+      listingIdToActor.get(trackMsg.listingId) match {
+        case Some(listingActor) =>
+          log.debug("Listing actor found {}, forwarding message", listingActor)
+          listingActor forward trackMsg
         case None =>
-          log.info("Creating Item actor for {}", trackMsg.item)
-          val itemActor = context.actorOf(Item.props(trackMsg.item, trackMsg.store), s"item-${trackMsg.item}")
-          context.watch(itemActor)
-          itemIdToActor.put(trackMsg.item, itemActor)
-          actorToItemId.put(itemActor, trackMsg.item)
-          itemActor forward trackMsg
+          log.info("Creating Listing actor for {}", trackMsg.listingId)
+          val listingActor = context.actorOf(Listing.props(trackMsg.listingId, trackMsg.store), s"listing-${trackMsg.listingId}")
+          context.watch(listingActor)
+          listingIdToActor.put(trackMsg.listingId, listingActor)
+          actorToListingId.put(listingActor, trackMsg.listingId)
+          listingActor forward trackMsg
       }
 
-    case RequestTrackLocation(id, requestedStoreId, _) =>
-      log.warning("Ignoring TrackLocation request {} for {}. This actor is responsible for {}",
+    case RequestTrackListing(id, requestedStoreId, _) =>
+      log.warning("Ignoring TrackListing request {} for {}. This actor is responsible for {}",
         id, requestedStoreId, storeId)
 
-    case RequestItemList(requestId) =>
-      log.debug("Item list requested {}", requestId)
-      sender() ! ReplyItemList(requestId, itemIdToActor.keySet)
+    case RequestListings(requestId) =>
+      log.debug("Listing list requested {}", requestId)
+      sender() ! ReplyListings(requestId, listingIdToActor.keySet)
 
-    case Terminated(itemActor) =>
-      val itemId = actorToItemId(itemActor)
-      log.info("Item actor for {} has been terminated", itemId)
-      actorToItemId.remove(itemActor)
-      itemIdToActor.remove(itemId)
+    case Terminated(listingActor) =>
+      val listingId = actorToListingId(listingActor)
+      log.info("Listing actor for {} has been terminated", listingId)
+      actorToListingId.remove(listingActor)
+      listingIdToActor.remove(listingId)
   }
 }
