@@ -1,4 +1,4 @@
-package octostore.store
+package octostore.location
 
 import akka.actor.{ActorSystem, PoisonPill}
 import akka.testkit.{ImplicitSender, TestKit}
@@ -9,26 +9,27 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.duration._
 
 
-class StoreSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
+class StoreManagerSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  val storeId = StoreId("store")
+  val firstStoreId = StoreId("first-store")
+  val secondStoreId = StoreId("second-store")
   val id = TimeUuid(0)
   val firstListing = ListingId("1")
   val secondListing = ListingId("2")
   val wrongStore = StoreId("wrongStore")
 
-  val sut = system.actorOf(Store.props(storeId))
+  val sut = system.actorOf(StoreManager.props())
 
   "Store actor" should {
 
-    "be able to register an listing actor" in {
-      sut ! RequestTrackListing(id, storeId, firstListing)
+    "be able to register a store actor" in {
+      sut ! RequestTrackListing(id, firstStoreId, firstListing)
       expectMsg(ListingRegistered(id))
 
       val firstListingActor = lastSender
 
-      sut ! RequestTrackListing(id, storeId, secondListing)
+      sut ! RequestTrackListing(id, secondStoreId, secondListing)
       expectMsg(ListingRegistered(id))
 
       val secondListingActor = lastSender
@@ -42,53 +43,52 @@ class StoreSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
       expectMsg(InventoryRecorded(id))
     }
 
-    "ignore request for wrong storeId" in {
-      sut ! RequestTrackListing(id, wrongStore, firstListing)
-      expectNoMessage(500.millis)
-    }
-
     "return same actor for same listingId" in {
-      sut ! RequestTrackListing(id, storeId, firstListing)
+      sut ! RequestTrackListing(id, firstStoreId, firstListing)
       expectMsg(ListingRegistered(id))
 
       val firstListingActor = lastSender
 
-      sut ! RequestTrackListing(id, storeId, firstListing)
+      sut ! RequestTrackListing(id, firstStoreId, firstListing)
       expectMsg(ListingRegistered(id))
 
       val secondListingActor = lastSender
       firstListingActor should ===(secondListingActor)
     }
 
-    "be able to list active listings" in {
-      sut ! RequestTrackListing(id, storeId, firstListing)
+    "be able to list active stores" in {
+      sut ! RequestTrackListing(id, firstStoreId, firstListing)
       expectMsg(ListingRegistered(id))
 
-      sut ! RequestTrackListing(id, storeId, secondListing)
+      sut ! RequestTrackListing(id, secondStoreId, secondListing)
       expectMsg(ListingRegistered(id))
 
-      sut ! RequestListings(id)
-      expectMsg(ReplyListings(id, Set(firstListing, secondListing)))
+      sut ! RequestStoreList(id)
+      expectMsg(ReplyStoreList(id, Set(firstStoreId, secondStoreId)))
     }
 
     "be able to list active listings after one shuts down" in {
-      sut ! RequestTrackListing(id, storeId, firstListing)
+      sut ! RequestTrackListing(id, firstStoreId, firstListing)
       expectMsg(ListingRegistered(id))
+
+      sut ! RequestTrackListing(id, secondStoreId, secondListing)
+      expectMsg(ListingRegistered(id))
+
+      sut ! RequestStoreList(id)
+      expectMsg(ReplyStoreList(id, Set(firstStoreId, secondStoreId)))
+
+      // just to get actor ref
+      system.actorSelection(s"akka://testSystem/user/*/store-$firstStoreId") ! RequestListings(id)
+      expectMsgClass(classOf[ReplyListings])
       val toShutDown = lastSender
-
-      sut ! RequestTrackListing(id, storeId, secondListing)
-      expectMsg(ListingRegistered(id))
-
-      sut ! RequestListings(id)
-      expectMsg(ReplyListings(id, Set(firstListing, secondListing)))
 
       watch(toShutDown)
       toShutDown ! PoisonPill
       expectTerminated(toShutDown, 500.millis)
 
       awaitAssert {
-        sut ! RequestListings(id)
-        expectMsg(ReplyListings(id, Set(secondListing)))
+        sut ! RequestStoreList(id)
+        expectMsg(ReplyStoreList(id, Set(secondStoreId)))
       }
     }
   }

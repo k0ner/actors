@@ -1,4 +1,4 @@
-package octostore.store
+package octostore.location
 
 import java.util.UUID
 

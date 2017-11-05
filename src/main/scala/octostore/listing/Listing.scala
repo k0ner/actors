@@ -1,7 +1,7 @@
 package octostore.listing
 
 import akka.actor.{Actor, ActorLogging, Props}
-import octostore.store.StoreId
+import octostore.location.StoreId
 
 case class ListingId(value: String) extends AnyVal {
   override def toString = value

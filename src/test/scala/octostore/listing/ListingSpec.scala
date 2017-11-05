@@ -3,7 +3,7 @@ package octostore.listing
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.gilt.timeuuid.TimeUuid
-import octostore.store.StoreId
+import octostore.location.StoreId
 import org.scalatest._
 
 import scala.concurrent.duration._

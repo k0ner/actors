@@ -1,4 +1,4 @@
-package octostore.store
+package octostore.location
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import octostore.listing.RequestTrackListing

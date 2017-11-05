@@ -2,7 +2,7 @@ package octostore.listing
 
 import java.util.UUID
 
-import octostore.store.StoreId
+import octostore.location.StoreId
 
 case class ReadInventory(requestId: UUID)
 
