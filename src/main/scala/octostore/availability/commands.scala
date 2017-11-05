@@ -1,4 +1,4 @@
-package inventory.availability
+package octostore.availability
 
 import java.util.UUID
 
@@ -12,6 +12,6 @@ case class Availability(quantity: Int) extends AvailabilityReading
 
 case object NoAvailability extends AvailabilityReading
 
-case object ItemNotAvailable extends AvailabilityReading
+case object ListingNotReachable extends AvailabilityReading
 
-case object ItemTimedOut extends AvailabilityReading
+case object ListingTimedOut extends AvailabilityReading

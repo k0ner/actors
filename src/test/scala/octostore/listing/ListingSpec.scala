@@ -1,26 +1,26 @@
-package inventory.item
+package octostore.listing
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.gilt.timeuuid.TimeUuid
-import inventory.store.StoreId
+import octostore.location.LocationId
 import org.scalatest._
 
 import scala.concurrent.duration._
 
-class ItemSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
+class ListingSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  val item = ItemId("11")
-  val store = StoreId("32")
-  val wrongItem = ItemId("wrongItem")
-  val wrongStore = StoreId("wrongStore")
+  val listing = ListingId("11")
+  val location = LocationId("32")
+  val wrongListing = ListingId("wrongListing")
+  val wrongLocation = LocationId("wrongLocation")
 
-  val sut = system.actorOf(Item.props(item, store))
+  val sut = system.actorOf(Listing.props(listing, location))
 
   val id = TimeUuid(42)
 
-  "Item actor" should {
+  "Listing actor" should {
 
     "reply with empty reading if no inventory is known" in {
       sut ! ReadInventory(id)
@@ -42,24 +42,24 @@ class ItemSpec extends TestKit(ActorSystem("testSystem")) with ImplicitSender
     }
 
     "reply to registration request" in {
-      sut ! RequestTrackLocation(id, store, item)
-      expectMsg(LocationRegistered(id))
+      sut ! RequestTrackListing(id, location, listing)
+      expectMsg(ListingRegistered(id))
       lastSender should ===(sut)
     }
 
     "ignore wrong registration request" should {
-      "wrong item" in {
-        sut ! RequestTrackLocation(id, store, wrongItem)
+      "wrong listing" in {
+        sut ! RequestTrackListing(id, location, wrongListing)
         expectNoMessage(500.millis)
       }
 
-      "wrong store" in {
-        sut ! RequestTrackLocation(id, wrongStore, item)
+      "wrong location" in {
+        sut ! RequestTrackListing(id, wrongLocation, listing)
         expectNoMessage(500.millis)
       }
 
-      "wrong item and store" in {
-        sut ! RequestTrackLocation(id, wrongStore, wrongItem)
+      "wrong listing and location" in {
+        sut ! RequestTrackListing(id, wrongLocation, wrongListing)
         expectNoMessage(500.millis)
       }
     }
