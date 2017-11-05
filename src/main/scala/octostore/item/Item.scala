@@ -1,7 +1,7 @@
-package inventory.item
+package octostore.item
 
 import akka.actor.{Actor, ActorLogging, Props}
-import inventory.store.StoreId
+import octostore.store.StoreId
 
 case class ItemId(value: String) extends AnyVal {
   override def toString = value

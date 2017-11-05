@@ -1,4 +1,4 @@
-package inventory
+package octostore
 
 import akka.actor.ActorSystem
 

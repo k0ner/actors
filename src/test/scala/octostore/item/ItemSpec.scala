@@ -1,9 +1,9 @@
-package inventory.item
+package octostore.item
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import com.gilt.timeuuid.TimeUuid
-import inventory.store.StoreId
+import octostore.store.StoreId
 import org.scalatest._
 
 import scala.concurrent.duration._

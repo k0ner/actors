@@ -1,9 +1,9 @@
-package inventory.availability
+package octostore.availability
 
 import akka.actor.{ActorSystem, PoisonPill}
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import com.gilt.timeuuid.TimeUuid
-import inventory.item.{ReadInventory, RespondInventory}
+import octostore.item.{ReadInventory, RespondInventory}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._

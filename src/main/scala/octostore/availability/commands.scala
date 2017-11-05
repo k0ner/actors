@@ -1,4 +1,4 @@
-package inventory.availability
+package octostore.availability
 
 import java.util.UUID
 

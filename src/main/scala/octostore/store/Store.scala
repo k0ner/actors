@@ -1,7 +1,7 @@
-package inventory.store
+package octostore.store
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
-import inventory.item.{Item, ItemId, RequestTrackLocation}
+import octostore.item.{Item, ItemId, RequestTrackLocation}
 
 import scala.collection.mutable
 

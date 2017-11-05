@@ -1,8 +1,8 @@
-package inventory.item
+package octostore.item
 
 import java.util.UUID
 
-import inventory.store.StoreId
+import octostore.store.StoreId
 
 case class ReadInventory(requestId: UUID)
 

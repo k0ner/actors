@@ -1,10 +1,10 @@
-package inventory.availability
+package octostore.availability
 
 import java.util.UUID
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
-import inventory.availability.StoreQuery.CollectionTimeout
-import inventory.item.{ReadInventory, RespondInventory}
+import octostore.availability.StoreQuery.CollectionTimeout
+import octostore.item.{ReadInventory, RespondInventory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
