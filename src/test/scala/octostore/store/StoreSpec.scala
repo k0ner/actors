@@ -3,7 +3,7 @@ package octostore.store
 import akka.actor.{ActorSystem, PoisonPill}
 import akka.testkit.{ImplicitSender, TestKit}
 import com.gilt.timeuuid.TimeUuid
-import octostore.item._
+import octostore.listing._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._

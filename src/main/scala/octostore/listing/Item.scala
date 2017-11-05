@@ -1,4 +1,4 @@
-package octostore.item
+package octostore.listing
 
 import akka.actor.{Actor, ActorLogging, Props}
 import octostore.store.StoreId

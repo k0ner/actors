@@ -2,7 +2,7 @@ package octostore.store
 
 import java.util.UUID
 
-import octostore.item.ItemId
+import octostore.listing.ItemId
 
 case class RequestItemList(requestId: UUID)
 

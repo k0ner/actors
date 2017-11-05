@@ -1,4 +1,4 @@
-package octostore.item
+package octostore.listing
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}

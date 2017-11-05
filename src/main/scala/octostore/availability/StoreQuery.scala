@@ -4,7 +4,7 @@ import java.util.UUID
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Terminated}
 import octostore.availability.StoreQuery.CollectionTimeout
-import octostore.item.{ReadInventory, RespondInventory}
+import octostore.listing.{ReadInventory, RespondInventory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.FiniteDuration
@@ -20,11 +20,10 @@ object StoreQuery {
     Props(new StoreQuery(actorToItemId, requestId, requester, timeout))
 }
 
-class StoreQuery(
-                  actorToItemId: Map[ActorRef, String],
-                  requestId: UUID,
-                  requester: ActorRef,
-                  timeout: FiniteDuration) extends Actor with ActorLogging {
+class StoreQuery(actorToItemId: Map[ActorRef, String],
+                 requestId: UUID,
+                 requester: ActorRef,
+                 timeout: FiniteDuration) extends Actor with ActorLogging {
 
   val queryTimeoutTimer = context.system.scheduler.scheduleOnce(timeout, self, CollectionTimeout)
 
