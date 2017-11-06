@@ -1,14 +1,20 @@
-name := "actors"
+val namePrefix = "octostore"
 
-version := "0.1"
+name := s"${Build.namePrefix}-root"
+
+version := "0.0.2"
 
 scalaVersion := "2.12.3"
 
-resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
+lazy val engine = project.
+  settings(Common.settings: _*).
+  settings(libraryDependencies ++= Dependencies.engineDependencies)
 
-libraryDependencies += "com.typesafe.akka" % "akka-actor_2.12" % "2.5.6"
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
-libraryDependencies += "org.scalatest" % "scalatest_2.12" % "3.0.4" % "test"
-libraryDependencies += "com.typesafe.akka" % "akka-testkit_2.12" % "2.5.6" % "test"
-libraryDependencies += "com.gilt" %% "gfc-timeuuid" % "0.0.8" // is it needed ??
+lazy val rest = project.
+  settings(Common.settings: _*).
+  settings(libraryDependencies ++= Dependencies.restDependencies)
 
+lazy val root = (project in file(".")).
+  settings(Common.settings: _*).
+  settings(libraryDependencies ++= Dependencies.restDependencies).
+  aggregate(engine, rest)
