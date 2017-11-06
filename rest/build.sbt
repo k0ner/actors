@@ -1,0 +1,1 @@
+name := s"${Build.namePrefix}-rest"
