@@ -15,4 +15,6 @@ lazy val rest = project.
   settings(libraryDependencies ++= Dependencies.restDependencies)
 
 lazy val root = (project in file(".")).
+  settings(Common.settings: _*).
+  settings(libraryDependencies ++= Dependencies.restDependencies).
   aggregate(engine, rest)
