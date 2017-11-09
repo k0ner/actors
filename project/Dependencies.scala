@@ -16,7 +16,8 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http" % "10.0.10",
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.10"
+    "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.10",
+    "org.scalatest" %% "scalatest" % "3.0.4" % "test"
   )
 
 }
