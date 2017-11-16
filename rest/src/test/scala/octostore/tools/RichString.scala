@@ -1,10 +1,10 @@
 package octostore.tools
 
+import scala.language.implicitConversions
+
 object RichString {
 
-  import scala.language.implicitConversions
-
-  implicit def createRichString(string: String): RichString = {
+  implicit def create(string: String): RichString = {
     new RichString(string)
   }
 }
