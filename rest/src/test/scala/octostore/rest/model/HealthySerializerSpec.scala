@@ -6,9 +6,10 @@ import org.scalatest.{Matchers, WordSpec}
 
 class HealthySerializerSpec extends WordSpec with Matchers with JsonSupport {
 
-  val sampleName = "sampleName"
+  val sampleName = "sample-name"
 
   "HealthySerializer" should {
+
     "serialize healthy object" in {
 
       val json = write(Healthy(sampleName))

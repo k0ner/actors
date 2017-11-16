@@ -26,19 +26,16 @@ class HealthySerializer extends CustomSerializer[Healthy](_ => ( {
 
 class UnhealthySerializer extends CustomSerializer[Unhealthy](_ => ( {
   case JObject(
-  JField(name,
-  JObject(
-  JField("status", JString("unhealthy")) ::
-    JField("symptoms", JArray(symptoms)) ::
-    Nil)) ::
-    Nil) => Unhealthy(name, symptoms.map {
-    case x: JString => Symptom(x.values)
-    case _ => throw new RuntimeException
-  }.toSet)
+  JField("service", JString(name)) ::
+    JField("status", JString("unhealthy")) ::
+    JField("symptoms", JArray(symptoms)) :: Nil) =>
+    Unhealthy(name, symptoms.map {
+      case x: JString => Symptom(x.values)
+      case _ => throw new RuntimeException
+    }.toSet)
 }, {
   case unhealthy: Unhealthy =>
-    unhealthy.name -> (
+    ("service" -> JString(unhealthy.name)) ~
       ("status" -> "unhealthy") ~
         ("symptoms" -> JArray(unhealthy.symptoms.toList.map(s => JString(s.description))))
-      )
 }))
