@@ -3,7 +3,7 @@ package octostore.rest
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import octostore.rest.routing.healthcheck.{ExampleHealth, HealthCheckRouting}
+import octostore.rest.routing.healthcheck.{ExampleHealthy, ExampleUnhealthy, HealthCheckRouting}
 
 import scala.io.StdIn
 
@@ -14,7 +14,7 @@ object OctoRest extends App {
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext = system.dispatcher
 
-  val route = HealthCheckRouting("v1", Seq(ExampleHealth)).routes
+  val route = HealthCheckRouting("v1", Seq(ExampleHealthy, ExampleUnhealthy)).routes
 
   val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
 

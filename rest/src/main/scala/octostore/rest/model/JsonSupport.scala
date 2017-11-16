@@ -1,44 +1,44 @@
 package octostore.rest.model
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, RootJsonWriter}
+import de.heikoseeberger.akkahttpjson4s.Json4sSupport
+import org.json4s.JsonAST.{JArray, JField, JObject}
+import org.json4s.JsonDSL._
+import org.json4s.native.Serialization
+import org.json4s.{CustomSerializer, JString, NoTypeHints, native}
 
-trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val symptomFormat = jsonFormat1(Symptom)
+trait JsonSupport extends Json4sSupport {
 
-  implicit object HealthyJsonWriter extends RootJsonWriter[Healthy] {
-    def write(healthy: Healthy): JsValue =
-      JsObject(healthy.name ->
-        JsObject(
-          "status" -> JsString("healthy")
-        ))
-  }
-
-  implicit object UnhealthyJsonWriter extends RootJsonWriter[Unhealthy] {
-    def write(unhealthy: Unhealthy): JsValue =
-      JsObject(unhealthy.name ->
-        JsObject(
-          "status" -> JsString("unhealthy"),
-          "symptoms" -> JsArray(unhealthy.symptoms.map(_.description).map(JsString(_)).toVector)
-        )
-      )
-  }
-
-  implicit object DiagnosisJsonWriter extends RootJsonWriter[Diagnosis] {
-    def write(diagnosis: Diagnosis) = diagnosis match {
-      case healthy: Healthy => HealthyJsonWriter.write(healthy)
-      case unhealthy: Unhealthy => UnhealthyJsonWriter.write(unhealthy)
-    }
-  }
-
-  implicit object HealthReportWriter extends RootJsonWriter[HealthReport] {
-    def write(healthReport: HealthReport) =
-      JsObject(
-        "versionNumber" -> JsString(healthReport.versionNumber),
-        "healthChecks" -> JsArray(healthReport.healthChecks.map(DiagnosisJsonWriter.write(_)).toVector)
-      )
-  }
+  implicit val serialization = native.Serialization
+  implicit val formats = Serialization.formats(NoTypeHints) + new HealthySerializer + new UnhealthySerializer
 
 }
 
+class HealthySerializer extends CustomSerializer[Healthy](_ => ( {
+  case JObject(
+  JField("service", JString(name)) ::
+    JField("status", JString("healthy")) :: Nil) => Healthy(name)
+}, {
+  case healthy: Healthy =>
+    ("service" -> JString(healthy.name)) ~
+      ("status" -> "healthy")
 
+}))
+
+class UnhealthySerializer extends CustomSerializer[Unhealthy](_ => ( {
+  case JObject(
+  JField(name,
+  JObject(
+  JField("status", JString("unhealthy")) ::
+    JField("symptoms", JArray(symptoms)) ::
+    Nil)) ::
+    Nil) => Unhealthy(name, symptoms.map {
+    case x: JString => Symptom(x.values)
+    case _ => throw new RuntimeException
+  }.toSet)
+}, {
+  case unhealthy: Unhealthy =>
+    unhealthy.name -> (
+      ("status" -> "unhealthy") ~
+        ("symptoms" -> JArray(unhealthy.symptoms.toList.map(s => JString(s.description))))
+      )
+}))
